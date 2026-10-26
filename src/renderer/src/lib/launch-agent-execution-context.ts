@@ -24,8 +24,6 @@ export function resolveAgentLaunchExecutionContext(
 ): AgentLaunchExecutionContext | null {
   // Why: `undefined` (rival host rows disagree) is not evidence of a remote; main rejects it anyway.
   const worktreeSshConnectionId = getConnectionIdFromState(store, args.worktreeId)
-  // Why: SSH remotes deploy the shim as plain `orca`, so skip the Linux-only `orca-ide` rename for remote launches.
-  const isRemote = Boolean(worktreeSshConnectionId)
   // Why getKnownWorktreeById: folder workspaces are not in allWorktrees, and their path marks WSL.
   const workspacePath = (
     store.getKnownWorktreeById?.(args.worktreeId) ??
@@ -41,7 +39,7 @@ export function resolveAgentLaunchExecutionContext(
   return {
     worktreeSshConnectionId,
     resolvedLaunchPlatform: launchHost.platform,
-    isRemote,
+    isRemote: launchHost.hostKind !== 'local',
     queuedShell: resolveExecutionHostAgentStartupShell(
       launchHost,
       store.settings?.terminalWindowsShell

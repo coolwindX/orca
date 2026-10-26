@@ -1,7 +1,7 @@
 import type { Repo } from './repo-types'
-import { getRepoSshConnectionId } from './execution-host'
+import { getRepoExecutionHostId, isRemoteExecutionHostId } from './execution-host'
 
-/** SSH file owners use relay orca/orca.cmd, never the Linux desktop orca-ide rename. Resolve executionHostId over stale connectionId; runtime hosts are remote only with nested SSH. Local-PTY routing uses getSshTargetIdForExecutionHost; already-resolved launch connections need no re-derivation. */
+/** SSH relays and headless runtimes install plain `orca`; only local Linux desktops use `orca-ide`. */
 export function repoIsRemote(repo: Pick<Repo, 'connectionId' | 'executionHostId'>): boolean {
-  return getRepoSshConnectionId(repo) !== null
+  return isRemoteExecutionHostId(getRepoExecutionHostId(repo))
 }

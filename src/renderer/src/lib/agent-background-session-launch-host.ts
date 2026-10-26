@@ -39,13 +39,13 @@ function resolveLaunchHostFact(
   store: LaunchStore,
   worktreeId: string,
   worktreePath: string | undefined
-): Pick<AgentBackgroundLaunchHost, 'platform' | 'isLocalHost'> & { isSshHost: boolean } {
+): Pick<AgentBackgroundLaunchHost, 'platform' | 'isLocalHost'> & { isRemoteHost: boolean } {
   const fact = resolveWorktreeExecutionHostPlatform(store, worktreeId, worktreePath)
   return {
     platform: requireExecutionHostPlatform(fact),
     isLocalHost: fact.kind === 'known' && fact.hostKind === 'local',
-    // Why: an SSH target (nested ones too) runs the relay shim as plain `orca`.
-    isSshHost: fact.kind === 'known' && fact.hostKind === 'ssh'
+    // SSH relays and headless runtimes both install plain `orca`.
+    isRemoteHost: fact.kind === 'known' && fact.hostKind !== 'local'
   }
 }
 
@@ -60,11 +60,11 @@ export function resolveAgentBackgroundLaunchHost(args: {
   if (repo) {
     // Resolve both SSH owner spellings once so spawn routing, trust writes and launch shape agree on the host.
     const sshConnectionId = getRepoSshConnectionId(repo)
-    const { isSshHost, ...hostFact } = resolveLaunchHostFact(store, worktreeId, worktreePath)
+    const { isRemoteHost, ...hostFact } = resolveLaunchHostFact(store, worktreeId, worktreePath)
     return {
       connectionId: sshConnectionId,
       ...hostFact,
-      isRemote: repoIsRemote(repo) || isSshHost,
+      isRemote: repoIsRemote(repo) || isRemoteHost,
       expectedConnectionId: sshConnectionId
     }
   }
@@ -73,11 +73,11 @@ export function resolveAgentBackgroundLaunchHost(args: {
   if (isFolderWorkspace && folderWorkspaceConnectionId === undefined) {
     throw new Error('The target folder workspace host is unavailable or ambiguous.')
   }
-  const { isSshHost, ...hostFact } = resolveLaunchHostFact(store, worktreeId, worktreePath)
+  const { isRemoteHost, ...hostFact } = resolveLaunchHostFact(store, worktreeId, worktreePath)
   return {
     connectionId: folderWorkspaceConnectionId ?? null,
     ...hostFact,
-    isRemote: Boolean(folderWorkspaceConnectionId) || isSshHost,
+    isRemote: Boolean(folderWorkspaceConnectionId) || isRemoteHost,
     expectedConnectionId: isFolderWorkspace ? (folderWorkspaceConnectionId ?? null) : undefined
   }
 }

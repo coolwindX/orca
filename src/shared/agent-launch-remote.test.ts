@@ -19,9 +19,8 @@ describe('repoIsRemote', () => {
     )
   })
 
-  it('keeps a runtime host with no nested SSH target local-shaped', () => {
-    // Runtime hosts without nested SSH are full installs and retain platform CLI naming.
-    expect(repoIsRemote({ connectionId: null, executionHostId: 'runtime:vm-1' })).toBe(false)
+  it('treats a headless runtime with no nested SSH target as remote', () => {
+    expect(repoIsRemote({ connectionId: null, executionHostId: 'runtime:vm-1' })).toBe(true)
   })
 
   it('keeps plain local rows local', () => {
