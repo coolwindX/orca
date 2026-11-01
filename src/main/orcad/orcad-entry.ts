@@ -1,5 +1,6 @@
 // Compose the Node-host runtime; paired desktop pages work even without a local browser engine.
 import process from 'node:process'
+import { loadAgentSessionClaimSigner } from '../runtime/agent-session/ownership/agent-session-claim-identity'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { resolveOrcadInstallRoot, resolveUserDataPath } from './orcad-app-paths'
 import { prepareOrcadCliLauncher } from './orcad-cli-launcher'
@@ -192,9 +193,9 @@ async function startOrcadRuntime(
     clientCodexHomes: codexAccountHomes
   })
 
-  const { loadAgentSessionClaimSigner } =
-    await import('../runtime/agent-session/ownership/agent-session-claim-identity')
+  const { createOrcadOrchestrationTransport } = await import('./orcad-orchestration-transport')
   const runtime = new OrcaRuntimeService(profileStore, stats, {
+    orchestrationEnvironmentTransport: createOrcadOrchestrationTransport(runtimeUserDataPath),
     // Persistent signatures let restarted runtimes adopt PTYs owned before restart.
     agentSessionClaimSigner: loadAgentSessionClaimSigner(runtimeUserDataPath, runtimeUserDataPath),
     getAdditionalAiVaultCodexHomePaths: () => [
